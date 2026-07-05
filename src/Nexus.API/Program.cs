@@ -1,6 +1,7 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Nexus.Application;
 using Nexus.Application.Common.Interfaces;
+using Nexus.Infrastructure.Agents.Discovery;
 using Nexus.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
@@ -12,6 +13,9 @@ builder.Services.AddDbContext<NexusDbContext>(options =>
 builder.Services.AddScoped<INexusDbContext>(sp => sp.GetRequiredService<NexusDbContext>());
 
 builder.Services.AddApplication();
+
+builder.Services.AddScoped<IJobDiscoverySource, DummyJobDiscoverySource>();
+builder.Services.AddHostedService<DiscoveryAgentService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
