@@ -1,14 +1,15 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Nexus.Application.Common.Interfaces;
 using Nexus.Domain.Entities;
 
 namespace Nexus.Infrastructure.Persistence;
 
-public class NexusDbContext : DbContext
+public class NexusDbContext : DbContext, INexusDbContext
 {
     public NexusDbContext(DbContextOptions<NexusDbContext> options) : base(options) { }
 
     public DbSet<Job> Jobs => Set<Job>();
-    public DbSet<Application> Applications => Set<Application>();
+    public DbSet<Nexus.Domain.Entities.Application> Applications => Set<Nexus.Domain.Entities.Application>();
     public DbSet<AgentLog> AgentLogs => Set<AgentLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -25,7 +26,7 @@ public class NexusDbContext : DbContext
             e.HasIndex(j => new { j.Title, j.Company });
         });
 
-        b.Entity<Application>(e =>
+        b.Entity<Nexus.Domain.Entities.Application>(e =>
         {
             e.Property(a => a.Status).HasConversion<string>().HasMaxLength(50);
             e.Property(a => a.CvVersionUsed).HasMaxLength(100);
