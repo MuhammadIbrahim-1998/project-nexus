@@ -1,7 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Nexus.Infrastructure.Hubs;
 using Nexus.Application;
 using Nexus.Application.Common.Interfaces;
+using Nexus.Infrastructure.Agents.ContentGeneration;
 using Nexus.Infrastructure.Agents.Discovery;
+using Nexus.Infrastructure.Agents.Matching;
+using Nexus.Infrastructure.Agents.Orchestrator;
+using Nexus.Infrastructure.ExternalServices.DeepSeek;
 using Nexus.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
@@ -15,10 +20,38 @@ builder.Services.AddScoped<INexusDbContext>(sp => sp.GetRequiredService<NexusDbC
 builder.Services.AddApplication();
 
 builder.Services.AddScoped<IJobDiscoverySource, DummyJobDiscoverySource>();
-builder.Services.AddHostedService<DiscoveryAgentService>();
+builder.Services.AddSingleton<DiscoveryAgentService>();
+builder.Services.AddSingleton<MatchingAgentService>();
+builder.Services.AddSingleton<ContentGenerationAgentService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DiscoveryAgentService>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<MatchingAgentService>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<ContentGenerationAgentService>());
+builder.Services.AddScoped<NexusOrchestratorService>();
+builder.Services.AddHttpClient<DeepSeekMatchingClient>(client =>
+{
+    client.BaseAddress = new Uri("https://api.deepseek.com");
+    client.Timeout = TimeSpan.FromSeconds(100);
+});
+builder.Services.AddHttpClient<DeepSeekContentClient>(client =>
+{
+    client.BaseAddress = new Uri("https://api.deepseek.com");
+    client.Timeout = TimeSpan.FromSeconds(100);
+});
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -29,6 +62,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowReactApp");
 app.MapControllers();
+app.MapHub<AgentStatusHub>("/hubs/agent-status");
 
 app.Run();

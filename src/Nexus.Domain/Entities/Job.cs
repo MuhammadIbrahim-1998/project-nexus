@@ -12,7 +12,10 @@ public class Job : BaseEntity
     public string? Location { get; set; }
     public bool IsRemote { get; set; } = true;
     public string? SalaryInfo { get; set; }
-    public decimal? MatchedScore { get; set; }
+    public int? MatchedScore { get; set; }
+    public string? MatchReasoning { get; set; }
+    public string? GeneratedContent { get; set; }
+    public DateTime? ContentGeneratedAt { get; set; }
     public DateTime? PostedDate { get; set; }
     public DateTime DiscoveredAt { get; set; } = DateTime.UtcNow;
 

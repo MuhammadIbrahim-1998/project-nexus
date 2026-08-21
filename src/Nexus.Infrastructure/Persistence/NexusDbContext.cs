@@ -22,7 +22,7 @@ public class NexusDbContext : DbContext, INexusDbContext
             e.Property(j => j.Url).HasMaxLength(1000);
             e.Property(j => j.Location).HasMaxLength(200);
             e.Property(j => j.SalaryInfo).HasMaxLength(200);
-            e.Property(j => j.MatchedScore).HasColumnType("decimal(5,2)");
+            e.Property(j => j.MatchReasoning).HasMaxLength(500);
             e.HasIndex(j => new { j.Title, j.Company });
         });
 

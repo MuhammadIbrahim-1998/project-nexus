@@ -8,6 +8,6 @@ public class JobDto
     public string? Location { get; set; }
     public string Source { get; set; } = default!;
     public bool IsRemote { get; set; }
-    public decimal? MatchedScore { get; set; }
+    public int? MatchedScore { get; set; }
     public DateTime DiscoveredAt { get; set; }
 }

@@ -1,78 +1,102 @@
-# Project Nexus
+# Project Nexus — Multi-Agent Job Search Dashboard
 
-**An agentic, multi-agent job-search dashboard built with .NET — and a portfolio piece that demonstrates the very skills it uses.**
+A portfolio project that demonstrates **Agentic AI + .NET** skills end-to-end, while doubling as a genuinely useful tool for a **semi-automated search/matching workflow for remote USD .NET jobs**. Four background agents discover, score, and draft tailored content for relevant roles — with a human always in control of the final decision.
 
-Project Nexus is a semi-automated system that discovers remote software roles, scores them against a candidate profile, and drafts tailored application content — while keeping a human firmly in control of every final decision. It is deliberately built as a *product*, using production-grade patterns (Clean Architecture, CQRS, background agents, cloud deployment), so that the codebase itself doubles as a demonstration of Agentic AI, ML, and .NET engineering.
-
-> **Status:** In active development. Backend-first build. See the [Roadmap](#roadmap) for current progress.
-
----
-
-## Why this project exists
-
-It serves two goals at once:
-
-1. **A working agentic-AI application** — something real to show on a CV/GitHub, not a toy demo.
-2. **A genuinely useful tool** — one that helps automate the tedious parts of a remote job search (discovery, matching, drafting), with the human making every final call.
-
-The guiding principle: *treat the job search like a software product — and let that product be the portfolio.*
-
----
-
-## Architecture
-
-The solution follows **Clean Architecture**, with dependencies always pointing inward toward the domain:
-
-```
-Nexus.API            →  Presentation layer (controllers, DI wiring, OpenAPI)
-   │
-   ├── Nexus.Application     →  Use cases: CQRS commands/queries, handlers, DTOs, interfaces
-   │        │
-   │        └── Nexus.Domain →  Entities, enums, core business rules (no dependencies)
-   │
-   └── Nexus.Infrastructure  →  EF Core, DbContext, external services (implements Application interfaces)
-```
-
-- **CQRS with MediatR** separates read (queries) from write (commands), keeping controllers thin.
-- The **Application layer depends only on interfaces** (e.g. `INexusDbContext`), never on Infrastructure directly — so the domain stays isolated and testable.
-- **EF Core migrations** manage the database schema as versioned code.
-
-*(An architecture diagram and UI screenshots will be added once the frontend lands.)*
+> **Status:** Active development. Backend + agents complete. React dashboard in progress. Azure deployment planned (see [Roadmap](#roadmap)).
 
 ---
 
 ## Tech Stack
 
-| Layer            | Technology                                        |
-|------------------|---------------------------------------------------|
-| Backend          | .NET Core Web API (.NET 10)                        |
-| Architecture     | Clean Architecture + CQRS / MediatR               |
-| Data             | Entity Framework Core + SQL Server                 |
-| Background work  | .NET hosted services / scheduled jobs             |
-| Real-time UI     | SignalR (live agent status)                       |
-| Frontend         | React                                             |
-| AI               | Claude API (Anthropic)                            |
-| Cloud            | Azure App Service / Container Apps                 |
-| CI/CD            | GitHub Actions                                     |
-| API testing      | Scalar (OpenAPI reference UI)                      |
+| Layer            | Technology                                            |
+|------------------|-------------------------------------------------------|
+| Backend          | .NET 10 Web API                                       |
+| Architecture     | Clean Architecture + CQRS / MediatR                   |
+| Data             | Entity Framework Core + SQL Server                    |
+| AI               | Claude API (Anthropic) — via `IClaudeClient`          |
+| AI               | DeepSeek API — matching "judge" + content generation  |
+| Real-time UI     | SignalR (`AgentStatusHub`)                            |
+| Frontend         | React + Vite + Tailwind CSS v4                        |
+| API testing      | Scalar (OpenAPI reference UI)                         |
+| Cloud            | Azure — **planned deployment** (App Service / Container Apps) |
 
 ---
 
-## Features
+## Architecture
 
-**Available now**
-- Clean Architecture solution with four layered projects
-- EF Core data model (`Jobs`, `Applications`, `AgentLogs`) with relationships and migrations
-- CQRS endpoints for listing and creating jobs
+Clean Architecture solution with dependencies always pointing inward. The solution is split into four .NET projects plus a React client:
 
-**Planned**
-- Discovery Agent — background service that pulls in new roles
-- Matching Agent — ML/embedding-based scoring against a candidate profile
-- Content Generation Agent — Claude-drafted, tailored CVs and cover letters
-- Data Analysis Agent — application trends and response-rate insights
-- Orchestrator Agent — coordinates the agents on a schedule
-- React dashboard with live agent status via SignalR
-- Azure deployment with GitHub Actions CI/CD
+```
+ProjectNexus/
+├── src/
+│   ├── Nexus.Domain/          # Entities, enums, base types (no dependencies)
+│   ├── Nexus.Application/     # CQRS commands/queries, handlers, DTOs, interfaces
+│   ├── Nexus.Infrastructure/  # EF Core DbContext, migrations, agents, external services, SignalR hub
+│   └── Nexus.API/             # Controllers, DI wiring, Program.cs, OpenAPI/Scalar
+├── client/                    # React + Vite + Tailwind CSS v4 frontend
+└── ProjectNexus.slnx
+```
+
+- **CQRS with MediatR** keeps controllers thin — reads (queries) and writes (commands) are separated.
+- The **Application layer depends only on interfaces** (e.g. `INexusDbContext`, `IClaudeClient`) so the domain stays isolated and testable.
+- **EF Core migrations** manage the database schema as versioned code.
+
+---
+
+## Agents
+
+All agents run as .NET **BackgroundServices** and log every run to `AgentLogs`. They broadcast live progress over SignalR.
+
+### 1. Discovery Agent
+- `DiscoveryAgentService` — a `BackgroundService` that runs on a configurable interval (`DiscoveryAgent:IntervalMinutes`, default 360).
+- Discovers jobs through an `IJobDiscoverySource` (currently `ClaudeJobDiscoverySource`, which asks Claude to generate sample remote .NET listings, or `DummyJobDiscoverySource` for offline dev).
+- **Duplicate-checks** each job by `Title + Company` before inserting, so re-runs never create duplicates.
+
+### 2. Matching Agent
+- `MatchingAgentService` — a `BackgroundService` (default interval 60 min) that picks up unscored jobs (`MatchedScore == null`).
+- Uses `DeepSeekMatchingClient` to call the **DeepSeek chat completions API as a "judge"**, which returns a JSON `{ "score": 0-100, "reasoning": "..." }` based on the job vs. the user's `UserProfile` (skills, experience, preferred roles).
+- Stores the score and reasoning directly on the `Job`.
+
+### 3. Content Generation Agent
+- `ContentGenerationAgentService` — a `BackgroundService` (default interval 90 min).
+- Only processes jobs that scored at or above `ContentGenerationAgent:MinMatchScoreThreshold` (default 70) and have no generated content yet.
+- Uses `DeepSeekContentClient` to generate **tailored CV bullet points + a cover-letter opening paragraph** per job, storing the result in `GeneratedContent`.
+
+### 4. Orchestrator Agent
+- `NexusOrchestratorService` — a coordinating service exposed via an **on-demand endpoint**.
+- Runs all three agents **sequentially**: Discovery → Matching → Content Generation.
+- Uses a `SemaphoreSlim` gate to reject concurrent pipeline runs.
+- Broadcasts each phase transition (Started / Progress / Completed / Failed) over SignalR using a single **"Orchestrator"** channel.
+
+---
+
+## Real-time Updates
+
+SignalR hub `AgentStatusHub` is mapped at **`/hubs/agent-status`**. Every agent (and the orchestrator) pushes `AgentStatus` events with:
+
+```json
+{
+  "agentType": "Discovery | Matching | ContentGeneration | Orchestrator",
+  "state": "Started | Progress | Completed | Failed | Partial",
+  "message": "Human-readable status",
+  "timestamp": "2026-08-21T..."
+}
+```
+
+The React client connects via `@microsoft/signalr` to render live pipeline progress.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint                               | Description                                        |
+|--------|----------------------------------------|----------------------------------------------------|
+| GET    | `/api/jobs`                            | List all jobs (CQRS query)                         |
+| POST   | `/api/jobs`                            | Create a job (CQRS command)                        |
+| GET    | `/api/analytics/dashboard-stats`       | Dashboard stats (totals, recent agent runs)        |
+| POST   | `/api/orchestrator/run-full-cycle`     | Start the full agent pipeline (fire-and-forget, returns 202 Accepted with a `runId`) |
+| GET    | `/scalar`                              | Scalar OpenAPI reference UI (development only)     |
+| WS     | `/hubs/agent-status`                   | SignalR hub for live agent status broadcasts       |
 
 ---
 
@@ -81,20 +105,19 @@ Nexus.API            →  Presentation layer (controllers, DI wiring, OpenAPI)
 ### Prerequisites
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
 - SQL Server (Express is fine) + a client such as SSMS
-- Node.js (for the React frontend, added later)
+- Node.js (18+) for the React frontend
 
-### Setup
+### Backend setup
 
 ```bash
-# 1. Clone
-git clone https://github.com/MuhammadIbrahim-1998/project-nexus.git
-cd project-nexus
+# 1. Restore packages
+dotnet restore
 
-# 2. Configure the database connection (kept out of source control)
+# 2. Configure secrets locally (never committed!)
 dotnet user-secrets init --project src/Nexus.API
-dotnet user-secrets set "ConnectionStrings:Default" \
-  "Server=localhost\SQLEXPRESS;Database=ProjectNexus;Trusted_Connection=True;TrustServerCertificate=True;" \
-  --project src/Nexus.API
+dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost\SQLEXPRESS;Database=ProjectNexus;Trusted_Connection=True;TrustServerCertificate=True;" --project src/Nexus.API
+dotnet user-secrets set "DeepSeek:ApiKey" "your-deepseek-api-key" --project src/Nexus.API
+dotnet user-secrets set "Anthropic:ApiKey" "your-anthropic-api-key" --project src/Nexus.API
 
 # 3. Apply migrations to create the database
 dotnet ef database update -s src/Nexus.Infrastructure
@@ -103,40 +126,42 @@ dotnet ef database update -s src/Nexus.Infrastructure
 dotnet run --project src/Nexus.API
 ```
 
-Then open the API reference UI in your browser at `https://localhost:<port>/scalar` to explore and test the endpoints.
+Open the Scalar API reference at `https://localhost:<port>/scalar`.
 
-> **Note:** Secrets (connection strings, the Anthropic API key) are never committed. They live in .NET User Secrets locally and in the cloud provider's secret store in production.
+### Frontend setup
 
----
+```bash
+# From the repo root — install Tailwind v4 workspace dependencies
+npm install
 
-## Project Structure
-
+# From the client/ folder — install React/Vite/SignalR dependencies
+cd client
+npm install
+npm run dev
 ```
-ProjectNexus/
-├── src/
-│   ├── Nexus.Domain/          # Entities, enums, base types
-│   ├── Nexus.Application/     # CQRS features, DTOs, interfaces, DI
-│   ├── Nexus.Infrastructure/  # EF Core DbContext, migrations
-│   └── Nexus.API/             # Controllers, Program.cs, OpenAPI
-└── ProjectNexus.sln
-```
+
+The Vite dev server runs at `http://localhost:5173` and is allowed by the API's CORS policy (`AllowReactApp`).
+
+> **Note on secrets:** Secrets (API keys, connection strings) are **never committed**. They live in .NET User Secrets locally (`dotnet user-secrets`), are read from configuration at runtime, and will live in the cloud provider's secret store in production. `appsettings.json` contains only non-sensitive defaults (logging, agent intervals, user profile); `appsettings.Development.json` contains dev-only overrides. Never put API keys in `appsettings*.json`.
 
 ---
 
 ## Roadmap
 
-- [x] **Step 1 — Database design:** Clean Architecture scaffold, EF Core entities, migrations, live SQL Server database
-- [ ] **Step 2 — Web API foundation:** CQRS/MediatR, first Jobs endpoints
-- [ ] **Step 3 — Discovery Agent:** background service for pulling roles
-- [ ] **Step 4 — React frontend:** jobs list, match scores, live agent status
-- [ ] **Step 5 — Remaining agents:** Matching, Content Generation, Data Analysis, Orchestrator
-- [ ] **Step 6 — Azure deployment + CI/CD**
+- [x] **Step 1 —** Clean Architecture scaffold, EF Core entities, initial migration
+- [x] **Step 2 —** CQRS/MediatR setup, Jobs endpoints (GetAll + Create), Scalar UI
+- [x] **Step 3 —** Discovery Agent (BackgroundService) with duplicate-check + agent logging
+- [x] **Step 4 —** Matching Agent (DeepSeek judge: score + reasoning)
+- [x] **Step 5 —** Content Generation Agent (DeepSeek: tailored CV/cover letter content)
+- [x] **Step 6 —** Orchestrator Agent (sequential pipeline + SignalR progress) + Data Analysis endpoint
+- [ ] **Step 7 —** React dashboard with jobs list, match scores, and live agent status
+- [ ] **Step 8 —** Azure deployment (App Service / Container Apps) + CI/CD — **planned, not yet deployed**
 
 ---
 
 ## Safety & Ethics
 
-This project is an **assistant**, not a spam bot. It is built with clear guardrails:
+This project is an **assistant**, not a spam bot:
 
 - No automated applying on platforms whose terms of service prohibit it.
 - The final "submit" on any application is always a human action.

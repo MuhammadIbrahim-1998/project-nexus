@@ -6,6 +6,13 @@
 # dotenv files
 .env
 
+# ASP.NET Core app settings (may contain local overrides / secrets)
+appsettings.Development.json
+appsettings.*.local.json
+
+# Scratch / test files
+test.md
+
 # User-specific files
 *.rsuser
 *.suo

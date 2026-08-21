@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nexus.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using Nexus.Infrastructure.Persistence;
 namespace Nexus.Infrastructure.Migrations
 {
     [DbContext(typeof(NexusDbContext))]
-    partial class NexusDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821121820_AddJobMatchingColumns")]
+    partial class AddJobMatchingColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,9 +128,6 @@ namespace Nexus.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime?>("ContentGeneratedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -136,9 +136,6 @@ namespace Nexus.Infrastructure.Migrations
 
                     b.Property<DateTime>("DiscoveredAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("GeneratedContent")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsRemote")
                         .HasColumnType("bit");
