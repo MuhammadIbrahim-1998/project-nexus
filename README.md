@@ -169,10 +169,12 @@ This project is an **assistant**, not a spam bot:
 
 ---
 
-## License
-
-Released under the MIT License.
-
 ## Author
 
 **Muhammad Ibrahim** — [@MuhammadIbrahim-1998](https://github.com/MuhammadIbrahim-1998)
+
+---
+
+## License
+
+This project is © 2026 Muhammad Ibrahim. All rights reserved — see [LICENSE](LICENSE) for details. Code is shared publicly for portfolio review purposes.
