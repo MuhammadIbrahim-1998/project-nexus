@@ -142,6 +142,20 @@ npm run dev
 
 The Vite dev server runs at `http://localhost:5173` and is allowed by the API's CORS policy (`AllowReactApp`).
 
+### Docker (frontend)
+
+The frontend can also be built and served as a production Docker container (multi-stage build: `node:22-alpine` builds the Vite `dist`, then `nginx:alpine` serves it on port 80). The nginx config includes an SPA fallback, so refreshing on any of the four routes (`/`, `/jobs`, `/agents`, `/analytics`) never returns a 404.
+
+```bash
+# Build the image from the repo root
+docker build -t nexus-frontend ./client
+
+# Run it, mapping host port 3000 to container port 80
+docker run -p 3000:80 nexus-frontend
+```
+
+Open `http://localhost:3000` — the Dashboard is the default route, and the sidebar navigates to Jobs, Agents, and Analytics.
+
 > **Note on secrets:** Secrets (API keys, connection strings) are **never committed**. They live in .NET User Secrets locally (`dotnet user-secrets`), are read from configuration at runtime, and will live in the cloud provider's secret store in production. `appsettings.json` contains only non-sensitive defaults (logging, agent intervals, user profile); `appsettings.Development.json` contains dev-only overrides. Never put API keys in `appsettings*.json`.
 
 ---
