@@ -11,6 +11,7 @@ public class NexusDbContext : DbContext, INexusDbContext
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<Nexus.Domain.Entities.Application> Applications => Set<Nexus.Domain.Entities.Application>();
     public DbSet<AgentLog> AgentLogs => Set<AgentLog>();
+    public DbSet<ApiUsageLog> ApiUsageLogs => Set<ApiUsageLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -47,6 +48,19 @@ public class NexusDbContext : DbContext, INexusDbContext
             e.HasOne(l => l.Job)
              .WithMany()
              .HasForeignKey(l => l.JobId)
+             .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<ApiUsageLog>(e =>
+        {
+            e.Property(a => a.Provider).IsRequired().HasMaxLength(50);
+            e.Property(a => a.Model).IsRequired().HasMaxLength(100);
+            e.Property(a => a.EstimatedCostUsd).HasPrecision(10, 6);
+            e.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+            e.HasOne(a => a.AgentLog)
+             .WithMany()
+             .HasForeignKey(a => a.AgentLogId)
              .OnDelete(DeleteBehavior.SetNull);
         });
     }

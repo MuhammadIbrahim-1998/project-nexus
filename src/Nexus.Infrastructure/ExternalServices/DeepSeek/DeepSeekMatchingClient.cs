@@ -1,8 +1,11 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nexus.Infrastructure.ExternalServices;
 
 namespace Nexus.Infrastructure.ExternalServices.DeepSeek;
 
@@ -19,15 +22,18 @@ public class DeepSeekMatchingClient
     private readonly HttpClient _http;
     private readonly string _apiKey;
     private readonly ILogger<DeepSeekMatchingClient> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public DeepSeekMatchingClient(
         HttpClient http,
         IConfiguration config,
-        ILogger<DeepSeekMatchingClient> logger)
+        ILogger<DeepSeekMatchingClient> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _http = http;
         _apiKey = config["DeepSeek:ApiKey"] ?? string.Empty;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task<DeepSeekMatchingResponse?> MatchJobAsync(
@@ -68,8 +74,10 @@ public class DeepSeekMatchingClient
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
+        var stopwatch = Stopwatch.StartNew();
         using var response = await _http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
+        stopwatch.Stop();
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("DeepSeek matching response: {Body}", body);
@@ -87,6 +95,23 @@ public class DeepSeekMatchingClient
             _logger.LogWarning("DeepSeek response content was empty.");
             return null;
         }
+
+        var inputTokens = 0;
+        var outputTokens = 0;
+        if (doc.RootElement.TryGetProperty("usage", out var usage))
+        {
+            inputTokens = usage.TryGetProperty("prompt_tokens", out var pt) ? pt.GetInt32() : 0;
+            outputTokens = usage.TryGetProperty("completion_tokens", out var ct) ? ct.GetInt32() : 0;
+        }
+
+        await ApiUsageLogger.LogAsync(
+            _scopeFactory,
+            "DeepSeekMatching",
+            Model,
+            inputTokens,
+            outputTokens,
+            (int)stopwatch.ElapsedMilliseconds,
+            cancellationToken);
 
         return ParseContent(messageContent);
     }

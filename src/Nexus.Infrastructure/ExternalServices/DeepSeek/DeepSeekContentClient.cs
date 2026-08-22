@@ -1,8 +1,11 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Nexus.Infrastructure.ExternalServices;
 
 namespace Nexus.Infrastructure.ExternalServices.DeepSeek;
 
@@ -13,15 +16,18 @@ public class DeepSeekContentClient
     private readonly HttpClient _http;
     private readonly string _apiKey;
     private readonly ILogger<DeepSeekContentClient> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public DeepSeekContentClient(
         HttpClient http,
         IConfiguration config,
-        ILogger<DeepSeekContentClient> logger)
+        ILogger<DeepSeekContentClient> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _http = http;
         _apiKey = config["DeepSeek:ApiKey"] ?? string.Empty;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task<string?> GenerateContentAsync(
@@ -61,8 +67,10 @@ public class DeepSeekContentClient
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
+        var stopwatch = Stopwatch.StartNew();
         using var response = await _http.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
+        stopwatch.Stop();
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         _logger.LogDebug("DeepSeek content generation response: {Body}", body);
@@ -80,6 +88,23 @@ public class DeepSeekContentClient
             _logger.LogWarning("DeepSeek response content was empty.");
             return null;
         }
+
+        var inputTokens = 0;
+        var outputTokens = 0;
+        if (doc.RootElement.TryGetProperty("usage", out var usage))
+        {
+            inputTokens = usage.TryGetProperty("prompt_tokens", out var pt) ? pt.GetInt32() : 0;
+            outputTokens = usage.TryGetProperty("completion_tokens", out var ct) ? ct.GetInt32() : 0;
+        }
+
+        await ApiUsageLogger.LogAsync(
+            _scopeFactory,
+            "DeepSeekContent",
+            Model,
+            inputTokens,
+            outputTokens,
+            (int)stopwatch.ElapsedMilliseconds,
+            cancellationToken);
 
         return messageContent.Trim();
     }
