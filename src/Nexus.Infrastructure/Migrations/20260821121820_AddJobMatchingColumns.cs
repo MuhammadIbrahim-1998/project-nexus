@@ -4,10 +4,8 @@
 
 namespace Nexus.Infrastructure.Migrations
 {
-    /// <inheritdoc />
     public partial class AddJobMatchingColumns : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<int>(
@@ -27,7 +25,6 @@ namespace Nexus.Infrastructure.Migrations
                 nullable: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

@@ -7,6 +7,7 @@ public class JobDto
     public string Company { get; set; } = default!;
     public string? Location { get; set; }
     public string Source { get; set; } = default!;
+    public string? SourceUrl { get; set; }
     public bool IsRemote { get; set; }
     public int? MatchedScore { get; set; }
     public DateTime DiscoveredAt { get; set; }

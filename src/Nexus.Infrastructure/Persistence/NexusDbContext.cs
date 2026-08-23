@@ -20,6 +20,7 @@ public class NexusDbContext : DbContext, INexusDbContext
             e.Property(j => j.Title).IsRequired().HasMaxLength(300);
             e.Property(j => j.Company).IsRequired().HasMaxLength(200);
             e.Property(j => j.Source).IsRequired().HasMaxLength(100);
+            e.Property(j => j.SourceUrl).HasMaxLength(1000);
             e.Property(j => j.Url).HasMaxLength(1000);
             e.Property(j => j.Location).HasMaxLength(200);
             e.Property(j => j.SalaryInfo).HasMaxLength(200);

@@ -55,7 +55,6 @@ public class ContentGenerationAgentService : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            // normal on shutdown
         }
     }
 

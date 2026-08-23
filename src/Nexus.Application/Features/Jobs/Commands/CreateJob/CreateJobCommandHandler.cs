@@ -18,6 +18,7 @@ public class CreateJobCommandHandler : IRequestHandler<CreateJobCommand, int>
             Company = request.Company,
             Description = request.Description,
             Source = request.Source,
+            SourceUrl = request.SourceUrl,
             Url = request.Url,
             Location = request.Location,
             IsRemote = request.IsRemote,

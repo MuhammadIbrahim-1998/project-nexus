@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Nexus.Infrastructure.Migrations
 {
-    /// <inheritdoc />
     public partial class AddApiUsageLogs : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -45,7 +43,6 @@ namespace Nexus.Infrastructure.Migrations
                 column: "AgentLogId");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

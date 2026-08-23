@@ -11,13 +11,16 @@ public class DummyJobDiscoverySource : IJobDiscoverySource
         {
             new("Remote .NET Backend Engineer", "Nimbus Labs", "DummySource",
                 "Remote (US)", true, "$90k-$120k",
-                "Build APIs with .NET and Azure.", "https://example.com/jobs/1"),
+                "Build APIs with .NET and Azure.", "https://example.com/jobs/1",
+                "https://example.com/jobs/1"),
             new("Senior C# Developer", "Orbit Systems", "DummySource",
                 "Remote (Worldwide)", true, "$100k-$130k",
-                "Clean Architecture, CQRS, EF Core.", "https://example.com/jobs/2"),
+                "Clean Architecture, CQRS, EF Core.", "https://example.com/jobs/2",
+                "https://example.com/jobs/2"),
             new(".NET Full Stack Developer", "Vertex Digital", "DummySource",
                 "Remote (EU)", true, "70k-90k EUR",
-                "React + .NET, SignalR realtime.", "https://example.com/jobs/3"),
+                "React + .NET, SignalR realtime.", "https://example.com/jobs/3",
+                "https://example.com/jobs/3"),
         };
 
         return Task.FromResult(jobs);

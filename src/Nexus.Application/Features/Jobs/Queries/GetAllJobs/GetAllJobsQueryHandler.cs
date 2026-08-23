@@ -22,6 +22,7 @@ public class GetAllJobsQueryHandler : IRequestHandler<GetAllJobsQuery, List<JobD
                 Company = j.Company,
                 Location = j.Location,
                 Source = j.Source,
+                SourceUrl = j.SourceUrl,
                 IsRemote = j.IsRemote,
                 MatchedScore = j.MatchedScore,
                 DiscoveredAt = j.DiscoveredAt

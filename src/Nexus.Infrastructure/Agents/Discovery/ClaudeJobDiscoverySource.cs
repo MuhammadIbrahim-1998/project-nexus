@@ -34,7 +34,8 @@ public class ClaudeJobDiscoverySource : IJobDiscoverySource
             IsRemote: true,
             SalaryInfo: j.SalaryInfo,
             Description: j.Description,
-            Url: j.Url)).ToList();
+            Url: j.Url,
+            SourceUrl: j.Url)).ToList();
     }
 
     private static string ExtractArray(string s)

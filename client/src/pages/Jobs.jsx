@@ -33,7 +33,14 @@ function Jobs() {
     }
   }, [])
 
-  const validJobs = jobs.filter((job) => job.title && job.company)
+  const validJobs = jobs.filter((job) => job.title && job.company && job.sourceUrl)
+
+  const sortedJobs = [...validJobs].sort((a, b) => {
+    if (a.matchedScore == null && b.matchedScore == null) return 0
+    if (a.matchedScore == null) return 1
+    if (b.matchedScore == null) return -1
+    return b.matchedScore - a.matchedScore
+  })
 
   return (
     <div className="space-y-6">
@@ -67,9 +74,9 @@ function Jobs() {
         </div>
       )}
 
-      {!loading && !error && validJobs.length > 0 && (
+      {!loading && !error && sortedJobs.length > 0 && (
         <div className="space-y-3">
-          {validJobs.map((job) => (
+          {sortedJobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
         </div>

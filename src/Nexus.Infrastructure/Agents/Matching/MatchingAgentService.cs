@@ -53,7 +53,6 @@ public class MatchingAgentService : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            // normal on shutdown
         }
     }
 

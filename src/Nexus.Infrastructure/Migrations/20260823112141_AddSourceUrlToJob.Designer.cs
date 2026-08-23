@@ -11,8 +11,8 @@ using Nexus.Infrastructure.Persistence;
 namespace Nexus.Infrastructure.Migrations
 {
     [DbContext(typeof(NexusDbContext))]
-    [Migration("20260821121820_AddJobMatchingColumns")]
-    partial class AddJobMatchingColumns
+    [Migration("20260823112141_AddSourceUrlToJob")]
+    partial class AddSourceUrlToJob
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -68,6 +68,58 @@ namespace Nexus.Infrastructure.Migrations
                     b.HasIndex("JobId");
 
                     b.ToTable("AgentLogs");
+                });
+
+            modelBuilder.Entity("Nexus.Domain.Entities.ApiUsageLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AgentLogId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<decimal?>("EstimatedCostUsd")
+                        .HasPrecision(10, 6)
+                        .HasColumnType("decimal(10,6)");
+
+                    b.Property<int>("InputTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ResponseTimeMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalTokens")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentLogId");
+
+                    b.ToTable("ApiUsageLogs");
                 });
 
             modelBuilder.Entity("Nexus.Domain.Entities.Application", b =>
@@ -126,6 +178,9 @@ namespace Nexus.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime?>("ContentGeneratedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -134,6 +189,9 @@ namespace Nexus.Infrastructure.Migrations
 
                     b.Property<DateTime>("DiscoveredAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("GeneratedContent")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsRemote")
                         .HasColumnType("bit");
@@ -160,6 +218,10 @@ namespace Nexus.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -188,6 +250,16 @@ namespace Nexus.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("Nexus.Domain.Entities.ApiUsageLog", b =>
+                {
+                    b.HasOne("Nexus.Domain.Entities.AgentLog", "AgentLog")
+                        .WithMany()
+                        .HasForeignKey("AgentLogId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AgentLog");
                 });
 
             modelBuilder.Entity("Nexus.Domain.Entities.Application", b =>

@@ -144,7 +144,6 @@ User Profile:
     {
         var cleaned = content.Trim();
 
-        // Strip markdown code fences just in case the model wraps the JSON.
         if (cleaned.StartsWith("```"))
         {
             var start = cleaned.IndexOf('{');

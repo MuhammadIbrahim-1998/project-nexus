@@ -8,4 +8,5 @@ public record DiscoveredJob(
     bool IsRemote,
     string? SalaryInfo,
     string? Description,
-    string? Url);
+    string? Url,
+    string? SourceUrl);

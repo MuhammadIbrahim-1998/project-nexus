@@ -8,6 +8,7 @@ public class Job : BaseEntity
     public string Company { get; set; } = default!;
     public string? Description { get; set; }
     public string Source { get; set; } = default!;
+    public string? SourceUrl { get; set; }
     public string? Url { get; set; }
     public string? Location { get; set; }
     public bool IsRemote { get; set; } = true;

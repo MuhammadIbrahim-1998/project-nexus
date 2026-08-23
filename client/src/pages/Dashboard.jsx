@@ -90,7 +90,14 @@ function Dashboard() {
     agentStatus &&
     (agentStatus.state === 'Started' || agentStatus.state === 'Progress')
 
-  const recentJobs = [...validJobs].slice(0, 4)
+  const sortedJobs = [...validJobs].sort((a, b) => {
+    if (a.matchedScore == null && b.matchedScore == null) return 0
+    if (a.matchedScore == null) return 1
+    if (b.matchedScore == null) return -1
+    return b.matchedScore - a.matchedScore
+  })
+
+  const recentJobs = sortedJobs.slice(0, 4)
 
   const handleRunFullCycle = async () => {
     setRunning(true)
@@ -106,7 +113,6 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header row */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-medium text-nexus-text">Dashboard</h2>
@@ -136,7 +142,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Stat cards */}
       <div className="grid grid-cols-3 gap-3">
         <StatCard label="jobs tracked" value={totalJobs} />
         <StatCard
@@ -154,7 +159,6 @@ function Dashboard() {
         />
       </div>
 
-      {/* Agent status strip */}
       {agentStatus && (
         <div className="flex items-center gap-2.5 bg-nexus-card border border-nexus-border rounded-lg px-4 py-3">
           <motion.span
@@ -182,7 +186,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Recent jobs */}
       <div>
         <h3 className="text-xs text-nexus-dim mb-3">recent jobs</h3>
 

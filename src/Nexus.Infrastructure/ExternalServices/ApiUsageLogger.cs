@@ -35,13 +35,11 @@ public static class ApiUsageLogger
         }
         catch
         {
-            // Side-effect logging must never break the main API call flow.
         }
     }
 
     private static decimal? EstimateCost(string provider, int inputTokens, int outputTokens)
     {
-        // Rough public pricing per 1M tokens (USD).
         return provider switch
         {
             "DeepSeekContent" or "DeepSeekMatching" =>

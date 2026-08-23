@@ -19,7 +19,22 @@ builder.Services.AddScoped<INexusDbContext>(sp => sp.GetRequiredService<NexusDbC
 
 builder.Services.AddApplication();
 
-builder.Services.AddScoped<IJobDiscoverySource, DummyJobDiscoverySource>();
+builder.Services.AddHttpClient<RemoteOkJobDiscoverySource>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient<HimalayasJobDiscoverySource>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient<ArbeitnowJobDiscoverySource>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+// Adzuna temporarily disabled: force-sets IsRemote=true + queries US job board only, which
+// polluted the jobs table with non-global-remote jobs. Re-enable when source reflects remote status.
+builder.Services.AddScoped<IJobDiscoverySource, CompositeJobDiscoverySource>();
+
 builder.Services.AddSingleton<DiscoveryAgentService>();
 builder.Services.AddSingleton<MatchingAgentService>();
 builder.Services.AddSingleton<ContentGenerationAgentService>();

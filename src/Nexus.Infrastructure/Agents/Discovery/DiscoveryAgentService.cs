@@ -49,7 +49,6 @@ public class DiscoveryAgentService : BackgroundService
         }
         catch (OperationCanceledException)
         {
-            // normal on shutdown
         }
     }
     internal async Task<AgentRunResult> RunOnceAsync(CancellationToken ct)
@@ -82,6 +81,7 @@ public class DiscoveryAgentService : BackgroundService
                     Company = job.Company,
                     Description = job.Description,
                     Source = job.Source,
+                    SourceUrl = job.SourceUrl,
                     Url = job.Url,
                     Location = job.Location,
                     IsRemote = job.IsRemote,
