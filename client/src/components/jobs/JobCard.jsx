@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function MatchScore({ score }) {
   if (score == null) {
     return <span className="font-mono text-xs text-nexus-muted">—</span>
@@ -50,8 +52,26 @@ function JobCard({ job, compact = false }) {
         </div>
       </div>
 
-      {job.sourceUrl && (
-        <div className="mt-3">
+      <div className="mt-3 flex items-center gap-4">
+        <Link
+          to={`/jobs/${job.id}/suggestions`}
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-nexus-amber text-nexus-amber hover:bg-nexus-amber hover:text-nexus-amber-dark transition-colors duration-200"
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z" />
+          </svg>
+          Suggestions
+        </Link>
+
+        {job.sourceUrl && (
           <a
             href={job.sourceUrl}
             target="_blank"
@@ -73,8 +93,8 @@ function JobCard({ job, compact = false }) {
             </svg>
             View Original Posting
           </a>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

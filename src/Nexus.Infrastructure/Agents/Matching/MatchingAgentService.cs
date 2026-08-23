@@ -107,6 +107,7 @@ public class MatchingAgentService : BackgroundService
                     {
                         job.MatchedScore = result.Score;
                         job.MatchReasoning = result.Reasoning;
+                        job.MissingSkills = result.MissingSkills is { Length: > 0 } ? string.Join(", ", result.MissingSkills) : null;
                         matchedCount++;
                     }
                 }

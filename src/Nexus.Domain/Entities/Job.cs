@@ -15,6 +15,7 @@ public class Job : BaseEntity
     public string? SalaryInfo { get; set; }
     public int? MatchedScore { get; set; }
     public string? MatchReasoning { get; set; }
+    public string? MissingSkills { get; set; }
     public string? GeneratedContent { get; set; }
     public DateTime? ContentGeneratedAt { get; set; }
     public DateTime? PostedDate { get; set; }

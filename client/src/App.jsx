@@ -4,6 +4,7 @@ import AppLayout from './components/layout/AppLayout'
 import PageTransition from './components/layout/PageTransition'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
+import JobSuggestions from './pages/JobSuggestions'
 import Agents from './pages/Agents'
 import Analytics from './pages/Analytics'
 
@@ -27,6 +28,14 @@ function AnimatedRoutes() {
             element={
               <PageTransition>
                 <Jobs />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="jobs/:id/suggestions"
+            element={
+              <PageTransition>
+                <JobSuggestions />
               </PageTransition>
             }
           />

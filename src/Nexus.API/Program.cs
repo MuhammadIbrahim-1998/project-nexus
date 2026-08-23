@@ -52,6 +52,7 @@ builder.Services.AddHttpClient<DeepSeekContentClient>(client =>
     client.BaseAddress = new Uri("https://api.deepseek.com");
     client.Timeout = TimeSpan.FromSeconds(100);
 });
+builder.Services.AddScoped<IProjectSuggestionService, ProjectSuggestionService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
